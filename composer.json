@@ -1,0 +1,19 @@
+{
+    "name": "pazny/btrfs-storage-testing",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Pazny\\BtrfsStorageTesting\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Aleš Pázner",
+            "email": "pazny.develop@gmail.com"
+        }
+    ],
+    "require": {
+        "aws/aws-sdk-php": "^3.324",
+        "laravel/prompts": "^0.3.1"
+    }
+}

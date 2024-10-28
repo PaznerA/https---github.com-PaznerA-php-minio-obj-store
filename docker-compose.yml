@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  crm-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+      - minio
+    env_file:
+      - .env
+
+  minio:
+    image: quay.io/minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    env_file:
+      - .env
+    command: server /data --console-address ":9001"
+    
+  db:
+    image: mysql:8.0
+    ports:
+      - "3303:3308"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    env_file:
+      - .env
+
+volumes:
+  minio_data:
+  mysql_data:
+    driver: local

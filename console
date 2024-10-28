@@ -1,0 +1,137 @@
+<?php declare(strict_types=1);
+
+namespace Pazny\BtrfsStorageTesting;
+
+require "./vendor/autoload.php";
+
+use Laravel\Prompts\SelectPrompt;
+use Pazny\BtrfsStorageTesting\Utils\Config;
+use Pazny\BtrfsStorageTesting\Utils\MinioStorageAPI;
+use Pazny\BtrfsStorageTesting\Models\Article;
+use Laravel\Prompts\TextareaPrompt;
+use Laravel\Prompts\TextPrompt;
+
+use function Laravel\Prompts\pause;
+use function Laravel\Prompts\form;
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\table;
+use function Laravel\Prompts\textarea;
+use function Laravel\Prompts\text;
+use function Laravel\Prompts\select;
+
+class ArticleManager {
+    private MinioStorageAPI $storage;
+    private Config $config;
+
+    public function __construct() {
+        $this->config = new Config(
+            'localhost:9000',
+            'heslo123',
+            'localhost',
+            'crm_db',
+            'user',
+            'password'
+        );
+        $this->storage = new MinioStorageAPI($this->config);
+    }
+
+    public function run() {
+        while (true) {
+            $action = new SelectPrompt(
+                'Choose an action', [
+                'Create Article',
+                'Retrieve Article',
+                'Update Article',
+                'List Article Versions',
+                'Exit'
+            ]);
+
+            switch ($action) {
+                case 'Create Article':
+                    $this->createArticle();
+                    break;
+                case 'Retrieve Article':
+                    $this->retrieveArticle();
+                    break;
+                case 'Update Article':
+                    $this->updateArticle();
+                    break;
+                case 'List Article Versions':
+                    $this->listArticleVersions();
+                    break;
+                case 'Exit':
+                    exit("Exiting the article manager.");
+            }
+        }
+    }
+
+    public function createArticle($title, $content, $authorId) {
+        $article = new Article($this->storage, $this->config);
+        $namespace = $article->create($title, $content, $authorId);
+        echo "Article created with namespace: $namespace\n";
+    }
+
+    public function retrieveArticle() {
+        $articleId = new TextPrompt('Enter article namespace to retrieve');
+        $article = new Article($this->storage, $this->config);
+        $data = $article->get($articleId);
+        echo "Article Content: " . $data['content'] . "\n";
+    }
+
+    public function updateArticle() {
+        $articleId = new TextPrompt('Enter article namespace to update');
+        $newContent = new TextareaPrompt('Enter new content for the article');
+
+        $article = new Article($this->storage, $this->config);
+        $versionId = $article->update($articleId, 'Updated Title', $newContent);
+        echo "Article updated. New version ID: $versionId\n";
+    }
+
+    public function listArticleVersions() {
+        $namespace = new TextPrompt('Enter article namespace to list versions');
+        $versions = $this->storage->listVersions($namespace);
+        
+        foreach ($versions as $version) {
+            echo "Version ID: {$version['version_id']}, Last Modified: {$version['timestamp']}, Size: {$version['size']} bytes\n";
+        }
+    }
+}
+
+$manager = new ArticleManager();
+// $manager->run();
+
+
+$action = select('Choose an action', [
+    'Create Article',
+    'Retrieve Article',
+    'Update Article',
+    'List Article Versions',
+    'Exit'
+]);
+
+switch ($action) {
+    case 'Create Article':
+        $data = form()
+         ->text('Enter article title', name: "title")
+         ->textarea('Enter article content', name: "content")
+         ->text('Enter author ID', name: "authorId")
+         ->confirm('Are you done?')
+         ->submit();
+
+        $manager->createArticle($data["title"], $data["content"], $data["authorId"]);
+        echo "Article created with namespace: $namespace\n"; 
+        break;
+    case 'Retrieve Article':
+        $manager->retrieveArticle();
+        break;
+    case 'Update Article':
+        $manager->updateArticle();
+        break;
+    case 'List Article Versions':
+        $manager->listArticleVersions();
+        break;
+    case 'Exit':
+        exit("Exiting the article manager.");
+}
+
+// pause('Press ENTER to continue.');
