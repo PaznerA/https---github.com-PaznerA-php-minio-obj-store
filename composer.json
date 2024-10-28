@@ -14,6 +14,9 @@
     ],
     "require": {
         "aws/aws-sdk-php": "^3.324",
-        "laravel/prompts": "^0.3.1"
+        "laravel/prompts": "^0.3.1",
+        "predis/predis": "^2.2",
+        "illuminate/redis": "^11.29",
+        "illuminate/database": "^11.29"
     }
 }

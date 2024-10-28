@@ -5,6 +5,7 @@ namespace Pazny\BtrfsStorageTesting;
 require "./vendor/autoload.php";
 
 use Laravel\Prompts\SelectPrompt;
+use Pazny\BtrfsStorageTesting\Models\LaravelArticle;
 use Pazny\BtrfsStorageTesting\Utils\Config;
 use Pazny\BtrfsStorageTesting\Utils\MinioStorageAPI;
 use Pazny\BtrfsStorageTesting\Models\Article;
@@ -35,40 +36,14 @@ class ArticleManager {
         $this->storage = new MinioStorageAPI($this->config);
     }
 
-    public function run() {
-        while (true) {
-            $action = new SelectPrompt(
-                'Choose an action', [
-                'Create Article',
-                'Retrieve Article',
-                'Update Article',
-                'List Article Versions',
-                'Exit'
-            ]);
-
-            switch ($action) {
-                case 'Create Article':
-                    $this->createArticle();
-                    break;
-                case 'Retrieve Article':
-                    $this->retrieveArticle();
-                    break;
-                case 'Update Article':
-                    $this->updateArticle();
-                    break;
-                case 'List Article Versions':
-                    $this->listArticleVersions();
-                    break;
-                case 'Exit':
-                    exit("Exiting the article manager.");
-            }
-        }
-    }
-
-    public function createArticle($title, $content, $authorId) {
+    public function createArticle($title, $content, $authorId): string {
         $article = new Article($this->storage, $this->config);
         $namespace = $article->create($title, $content, $authorId);
         echo "Article created with namespace: $namespace\n";
+        return $namespace;
+
+        // $article = new LaravelArticle([$title, $content, $authorId]);
+        // $article->storeVersion();
     }
 
     public function retrieveArticle() {
@@ -98,9 +73,6 @@ class ArticleManager {
 }
 
 $manager = new ArticleManager();
-// $manager->run();
-
-
 $action = select('Choose an action', [
     'Create Article',
     'Retrieve Article',
@@ -115,11 +87,9 @@ switch ($action) {
          ->text('Enter article title', name: "title")
          ->textarea('Enter article content', name: "content")
          ->text('Enter author ID', name: "authorId")
-         ->confirm('Are you done?')
          ->submit();
 
         $manager->createArticle($data["title"], $data["content"], $data["authorId"]);
-        echo "Article created with namespace: $namespace\n"; 
         break;
     case 'Retrieve Article':
         $manager->retrieveArticle();
