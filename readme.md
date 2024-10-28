@@ -1,5 +1,5 @@
 ## About:
-This projec is a docker based php cli app(Laravel prompts) example usage of btrfs-like storage behind s3 interface (minio)
+This project is a docker based php cli app (Laravel prompts) example usage of btrfs-like storage behind s3 interface (minio) with in-memory (redis) caching, indexes and metadata
 
 
 ## TODO:
