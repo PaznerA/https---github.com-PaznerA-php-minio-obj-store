@@ -15,7 +15,7 @@ class Connector implements \Stringable {
     private object $db;
     
     private const MAX_KEY_LENGTH = 256;
-    private const KEY_PATTERN = '/^[a-zA-Z0-9_\-\/\*]+$/';
+    private const KEY_PATTERN = '/^[a-zA-Z0-9_\-\/]+$/';
     private const PATH_PATTERN = '/^[a-zA-Z0-9_\-\/\*]+$/';
     private const MAX_PATH_DEPTH = 10;
     private const MAX_VALUE_LENGTH = 1024 * 1024; // 1MB
