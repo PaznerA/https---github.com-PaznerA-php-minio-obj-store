@@ -41,6 +41,7 @@ while (true) {
             $data = form()
                 ->text('Enter article namespace', name: "namespace")
                 ->submit();
+                var_dump($data);
             $manager->retrieveArticle($data);
             break;
 

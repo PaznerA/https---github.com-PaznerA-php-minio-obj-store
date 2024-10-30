@@ -2,16 +2,16 @@
 
 namespace Pazny\BtrfsStorageTesting\Utils;
 
-use Pazny\BtrfsStorageTesting\Utils\RustDb;
+use Pazny\BtrfsStorageTesting\Utils\RustDb\Connector;
 
 class Database {
     
-    private RustDb $memoryConnection; //implement rollUp for loading data from storage and creation of internal "SYS. DB"
+    private Connector $memoryConnection; //implement rollUp for loading data from storage and creation of internal "SYS. DB"
     private MinioStorageAPI $storageApi;
 
     public function __construct(Config $config) {
         try {
-            $this->memoryConnection = new RustDb(path: '/data/db/storage.json');
+            $this->memoryConnection = new Connector(path: '/data/db/storage.json');
         } catch (\Throwable $e) {
             throw new \Exception(message: "Memory storage connection failed: " . $e->getMessage());
         }
@@ -24,7 +24,7 @@ class Database {
 
     }
 
-    private function _conn(): RustDb {
+    private function _conn(): Connector {
         return $this->memoryConnection;
     }
 
@@ -47,6 +47,7 @@ class Database {
     }
     public function get(string $namespace, ?int $versionId = null): mixed 
     {
+        // var_dump(self::_conn()->findByPath("articles/*"));
         $value = self::_conn()->get($namespace);
         if($value !== null) {
             return $value;
