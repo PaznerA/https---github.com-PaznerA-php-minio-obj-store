@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  
+  rust-db:
+    build:
+      context: ./src/DB
+      dockerfile: Dockerfile
+    volumes:
+      - rust_db_data:/data/db
+    environment:
+      - RUST_LOG=info
+    restart: unless-stopped
+
   crm-app:
     build: 
       context: .
@@ -9,9 +20,13 @@ services:
       - "8080:80"
     volumes:
       - ./:/var/www/html
+      - rust_db_data:/data/db
     depends_on:
-      - db
+      - rust-db
       - minio
+    environment:
+      - DB_CONNECTION=rust-db
+      - RUST_DB_PATH=/data/db/storage.json
     env_file:
       - .env
 
@@ -25,17 +40,8 @@ services:
     env_file:
       - .env
     command: server /data --console-address ":9001"
-    
-  db:
-    image: mysql:8.0
-    ports:
-      - "3303:3308"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    env_file:
-      - .env
 
 volumes:
   minio_data:
-  mysql_data:
+  rust_db_data:
     driver: local

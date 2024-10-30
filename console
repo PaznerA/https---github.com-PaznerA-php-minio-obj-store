@@ -4,13 +4,8 @@ namespace Pazny\BtrfsStorageTesting;
 
 require "./vendor/autoload.php";
 
-use Laravel\Prompts\SelectPrompt;
-use Pazny\BtrfsStorageTesting\Models\LaravelArticle;
-use Pazny\BtrfsStorageTesting\Utils\Config;
-use Pazny\BtrfsStorageTesting\Utils\MinioStorageAPI;
+use Pazny\BtrfsStorageTesting\Utils\ArticleManager;
 use Pazny\BtrfsStorageTesting\Models\Article;
-use Laravel\Prompts\TextareaPrompt;
-use Laravel\Prompts\TextPrompt;
 
 use function Laravel\Prompts\pause;
 use function Laravel\Prompts\form;
@@ -20,88 +15,52 @@ use function Laravel\Prompts\textarea;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\select;
 
-class ArticleManager {
-    private MinioStorageAPI $storage;
-    private Config $config;
 
-    public function __construct() {
-        $this->config = new Config(
-            'localhost:9000',
-            'heslo123',
-            'localhost',
-            'crm_db',
-            'user',
-            'password'
-        );
-        $this->storage = new MinioStorageAPI($this->config);
-    }
 
-    public function createArticle($title, $content, $authorId): string {
-        $article = new Article($this->storage, $this->config);
-        $namespace = $article->create($title, $content, $authorId);
-        echo "Article created with namespace: $namespace\n";
-        return $namespace;
+while (true) {
+    $manager = new ArticleManager();
+    $action = select('Choose an action', [
+        'Create Article',
+        'Retrieve Article',
+        'Update Article',
+        'List Article Versions',
+        'Exit'
+    ]);
 
-        // $article = new LaravelArticle([$title, $content, $authorId]);
-        // $article->storeVersion();
-    }
+    switch ($action) {
+        case 'Create Article':
+            $data = form()
+                ->text('Enter article title', name: "title")
+                ->textarea('Enter article content', name: "content")
+                ->text('Enter author ID', name: "authorId")
+                ->submit();
+            $manager->createArticle($data["title"], $data["content"], $data["authorId"]);
+            break;
 
-    public function retrieveArticle() {
-        $articleId = new TextPrompt('Enter article namespace to retrieve');
-        $article = new Article($this->storage, $this->config);
-        $data = $article->get($articleId);
-        echo "Article Content: " . $data['content'] . "\n";
-    }
+        case 'Retrieve Article':
+            $data = form()
+                ->text('Enter article namespace', name: "namespace")
+                ->submit();
+            $manager->retrieveArticle($data);
+            break;
 
-    public function updateArticle() {
-        $articleId = new TextPrompt('Enter article namespace to update');
-        $newContent = new TextareaPrompt('Enter new content for the article');
+        case 'Update Article':
+            $data = form()
+                ->text('Enter new article title', name: "title")
+                ->textarea('Enter new article content', name: "content")
+                ->text('Enter new author ID', name: "authorId")
+                ->submit();
+            $manager->updateArticle($data);
+            break;
 
-        $article = new Article($this->storage, $this->config);
-        $versionId = $article->update($articleId, 'Updated Title', $newContent);
-        echo "Article updated. New version ID: $versionId\n";
-    }
+        case 'List Article Versions':
+            $data = form()
+                ->text('Enter article namespace to list versions', name: "namespace")
+                ->submit();
+            $manager->listArticleVersions($data);
+            break;
 
-    public function listArticleVersions() {
-        $namespace = new TextPrompt('Enter article namespace to list versions');
-        $versions = $this->storage->listVersions($namespace);
-        
-        foreach ($versions as $version) {
-            echo "Version ID: {$version['version_id']}, Last Modified: {$version['timestamp']}, Size: {$version['size']} bytes\n";
-        }
+        case 'Exit':
+            exit("Exiting the article manager.");
     }
 }
-
-$manager = new ArticleManager();
-$action = select('Choose an action', [
-    'Create Article',
-    'Retrieve Article',
-    'Update Article',
-    'List Article Versions',
-    'Exit'
-]);
-
-switch ($action) {
-    case 'Create Article':
-        $data = form()
-         ->text('Enter article title', name: "title")
-         ->textarea('Enter article content', name: "content")
-         ->text('Enter author ID', name: "authorId")
-         ->submit();
-
-        $manager->createArticle($data["title"], $data["content"], $data["authorId"]);
-        break;
-    case 'Retrieve Article':
-        $manager->retrieveArticle();
-        break;
-    case 'Update Article':
-        $manager->updateArticle();
-        break;
-    case 'List Article Versions':
-        $manager->listArticleVersions();
-        break;
-    case 'Exit':
-        exit("Exiting the article manager.");
-}
-
-// pause('Press ENTER to continue.');

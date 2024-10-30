@@ -71,7 +71,7 @@ class MinioStorageAPI {
         }
     }
 
-    public function listVersions($namespace) {
+    public function listVersions($namespace): array {
         try {
             $results = $this->s3Client->listObjectVersions([
                 'Bucket' => $this->bucket,
@@ -90,6 +90,27 @@ class MinioStorageAPI {
             return $versions;
         } catch (AwsException $e) {
             throw new \Exception("Failed to list versions: " . $e->getMessage());
+        }
+    }
+
+    public function delete($namespace, $versionId = null) {
+        try {
+            $params = [
+                'Bucket' => $this->bucket,
+                'Key'    => $namespace
+            ];
+
+            if ($versionId) {
+                $params['VersionId'] = $versionId;
+            }
+
+            $result = $this->s3Client->deleteObject($params);
+            
+            return [
+                'result' => $result
+            ];
+        } catch (AwsException $e) {
+            throw new \Exception("Failed to retrieve object: " . $e->getMessage());
         }
     }
 }
