@@ -29,6 +29,8 @@ $config = new Config(
 // $database = new Database($config);
 $storage = new MinioStorageAPI($config);
 
+var_dump($database->get('ssss'));
+
 try {
     $article = new Article( $storage, $config); // Assuming Article class is modified to accept Config
 
