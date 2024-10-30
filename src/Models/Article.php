@@ -36,15 +36,15 @@ class Article {
 
     public function update(string $namespace, $title, $content) {
         try {
-            $versionId = $this->db->update(namespace: $namespace, content: $content);
-            return $versionId;
+            // $versionId = $this->db->update(namespace: $namespace, content: $content);
+            // return $versionId;
         } catch (Exception $e) {
             throw new Exception("Failed to update article: " . $e->getMessage());
         }
     }
     public function delete($articleId, $versionId = null) {
-            $this->db->unset($articleId, $versionId);
-        }
+            // $this->db->unset($articleId, $versionId);
+    }
 
     public function getVersionHistory($articleId) {
         try {
